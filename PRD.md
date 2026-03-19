@@ -285,6 +285,34 @@ PAT: vw get "dolly-works GitHub" field "PAT"
 
 ---
 
+## Phase 1.5 Updates (add to existing build)
+
+### Authentication — Replace magic links with Azure SSO
+- Use NextAuth.js AzureAD provider (already in next-auth)
+- Skycomm tenant: skycomm.com.au
+- Doctors login with their existing Microsoft/Google accounts
+- Admin users = Skycomm staff (david@skycomm.com.au, bob@skycomm.com.au)
+- Remove email magic link auth entirely
+- Azure app registration: create under Skycomm tenant with delegated User.Read permission
+
+### Admin Dashboard — Real-time monitoring
+Add `/admin/dashboard` page with:
+- **Live job feed** — jobs processing now, last 24h, success/failure rate
+- **Per-doctor stats** — letters processed today/week/month, avg processing time
+- **System health** — AssemblyAI API status, Claude API status, email polling status (last poll time, next poll)
+- **Error log** — failed jobs with reason, retry button
+- **Cost tracker** — API spend today/month (AssemblyAI + Claude tokens)
+- **Inbox monitor** — last email received, how many unprocessed in queue
+- **Model usage split** — % using Claude vs GPT-4.1 across all doctors
+- Auto-refresh every 30s (or use Vercel's streaming/SSE)
+
+### DS2 Format Support
+Add DS2/DSS conversion to the processing pipeline:
+- Use ffmpeg with `-f dss` format flag to convert Philips DS2/DSS files to WAV before sending to AssemblyAI
+- Note: ffmpeg DSS decoder has a pitch bug — test output quality, may need fallback
+- Supported input formats: wav, mp3, m4a, wma, ds2, dss, flac, ogg, webm
+- Convert all non-standard formats to 16kHz mono WAV before STT
+
 ## What NOT to Build (Phase 1)
 
 - PDF output (Phase 2)
