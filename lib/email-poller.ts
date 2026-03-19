@@ -136,5 +136,12 @@ export async function pollEmailInbox(): Promise<{
     errors.push(`Poll error: ${errMsg}`);
   }
 
+  // Update system status with last polled time
+  await prisma.systemStatus.upsert({
+    where: { id: "singleton" },
+    update: { lastPolledAt: new Date() },
+    create: { id: "singleton", lastPolledAt: new Date() },
+  });
+
   return { processed, errors };
 }

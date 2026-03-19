@@ -16,6 +16,7 @@ export function Nav() {
   ];
 
   const adminLinks = [
+    { href: "/admin/dashboard", label: "Monitor" },
     { href: "/admin/doctors", label: "Doctors" },
     { href: "/admin/jobs", label: "All Jobs" },
   ];

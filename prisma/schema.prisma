@@ -41,3 +41,11 @@ model Job {
 
   @@map("jobs")
 }
+
+model SystemStatus {
+  id        String   @id @default("singleton")
+  lastPolledAt DateTime? @map("last_polled_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("system_status")
+}
