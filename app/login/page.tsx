@@ -1,37 +1,13 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const result = await signIn("credentials", {
-      email: email.toLowerCase().trim(),
-      redirect: false,
-    });
-
-    setLoading(false);
-
-    if (result?.error) {
-      setError(
-        "Email not found. Only registered doctors can access this service."
-      );
-    } else {
-      router.push(callbackUrl);
-    }
-  }
+  const error = searchParams.get("error");
 
   return (
     <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
@@ -42,35 +18,28 @@ function LoginForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-zinc-700"
-          >
-            Email Address
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="you@example.com"
-          />
-        </div>
+      {error && (
+        <p className="text-center text-sm text-red-600">
+          {error === "AccessDenied"
+            ? "Access denied. Only registered doctors can sign in."
+            : "An error occurred during sign in. Please try again."}
+        </p>
+      )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
+      <button
+        onClick={() =>
+          signIn("microsoft-entra-id", { callbackUrl })
+        }
+        className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#0078d4] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#106ebe] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+      >
+        <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+        </svg>
+        Sign in with Microsoft
+      </button>
 
       <p className="text-center text-xs text-zinc-500">
         Only registered doctors can access this service.

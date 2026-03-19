@@ -1,39 +1,38 @@
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import { prisma } from "@/lib/db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    Credentials({
-      name: "Email",
-      credentials: {
-        email: { label: "Email", type: "email", placeholder: "you@example.com" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email) return null;
-
-        const doctor = await prisma.doctor.findUnique({
-          where: { email: (credentials.email as string).toLowerCase() },
-        });
-
-        if (!doctor || !doctor.active) return null;
-
-        return {
-          id: doctor.id,
-          email: doctor.email,
-          name: doctor.name,
-          isAdmin: doctor.isAdmin,
-        } as Record<string, unknown>;
-      },
+    MicrosoftEntraID({
+      clientId: process.env.AZURE_AD_CLIENT_ID!,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+      issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
     }),
   ],
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.doctorId = user.id;
-        token.isAdmin = Boolean((user as Record<string, unknown>).isAdmin);
+    async signIn({ profile }) {
+      if (!profile?.email) return false;
+
+      // Check if doctor exists and is active
+      const doctor = await prisma.doctor.findUnique({
+        where: { email: profile.email.toLowerCase() },
+      });
+
+      if (!doctor || !doctor.active) return false;
+      return true;
+    },
+    async jwt({ token, profile }) {
+      if (profile?.email) {
+        const doctor = await prisma.doctor.findUnique({
+          where: { email: profile.email.toLowerCase() },
+        });
+        if (doctor) {
+          token.doctorId = doctor.id;
+          token.isAdmin = doctor.isAdmin;
+        }
       }
       return token;
     },
