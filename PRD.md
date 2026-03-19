@@ -1,14 +1,55 @@
 # SkyTP v2 — Medical Transcription Service PRD
 
-**Build target:** Production-ready MVP
-**Stack:** Next.js 15, Vercel, AssemblyAI STT, GPT-4.1 / Claude Sonnet 4.6 (selectable)
-**Repo:** Skycomm/skytp-service (create on GitHub under Skycomm org)
+**Build target:** Production-ready SaaS MVP
+**Stack:** Python backend (Windows VM Sky-TP), Next.js/Vercel frontend (Phase 2)
+**Repo:** Skycomm/skytp-service
+**Last updated:** 2026-03-20
+
+---
+
+## ⚠️ CURRENT PHASE: STEALTH COMPARISON — NO EMAILS TO DOCTORS
+
+Doctors are receiving letters from the existing Windows system. We are **silently running our pipeline in parallel** to compare quality. **Do not send any emails to doctors until David explicitly approves.**
 
 ---
 
 ## What We're Building
 
-A web service that receives doctor audio dictations (via email attachment or web upload), transcribes them with AssemblyAI, formats them into medical letters with an LLM, and delivers the finished letter back by email and stores it in a web portal.
+**Phase 1 (NOW):** Python backend service on Sky-TP Windows VM that:
+1. Polls `transcriptions@skycomm.com.au` for incoming audio dictations
+2. For each dictation, runs **all three pipelines in parallel:**
+   - **Original**: The existing SkyTP Windows system output (baseline)
+   - **GPT-4.1**: AssemblyAI STT → GPT-4.1 formatting
+   - **Claude Sonnet 4.6**: AssemblyAI STT → Claude Sonnet formatting
+3. Stores all three outputs for side-by-side comparison
+4. **NO emails sent** — comparison mode only
+5. Exposes REST API for the dashboard
+
+**Phase 2 (LATER):** Vercel SaaS frontend — Fortune 500 quality dashboard
+
+---
+
+## A/B Testing — The Core Feature
+
+For every dictation received:
+- Run original SkyTP prompt on GPT-4.1 → "Original" output
+- Run our Claude Sonnet few-shot prompt → "Sonnet" output
+- Run our GPT-4.1 prompt → "GPT-4.1" output
+- Show all three side-by-side in the dashboard
+- Allow David/team to rate each output (thumbs up/down per paragraph)
+- Track which model wins over time → data-driven model selection
+
+This gives us **proof** before we ever change what doctors receive.
+
+---
+
+## Architecture
+
+**Deployed:** Python service on Sky-TP (192.168.51.11, VLAN 51, DHCP)
+**Service:** `C:\SkyTP\service.py` managed by NSSM (auto-restart, boot start)
+**API:** FastAPI on port 8000
+**DB:** SQLite at `C:\SkyTP\skytp.db` (migrate to Neon Postgres with Vercel frontend)
+**DS2:** NCH Switch (needs installing on Sky-TP)
 
 Replacing: an existing Windows-based file-polling system (SkyTP) that is producing garbled letters and missing deliveries.
 
