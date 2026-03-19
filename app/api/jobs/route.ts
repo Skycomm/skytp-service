@@ -26,13 +26,17 @@ export async function POST(request: NextRequest) {
     "audio/x-m4a",
     "audio/ogg",
     "audio/flac",
+    "audio/webm",
   ];
-  const allowedExtensions = [".mp3", ".wav", ".m4a", ".ogg", ".flac", ".wma"];
+  const allowedExtensions = [
+    ".mp3", ".wav", ".m4a", ".ogg", ".flac", ".wma",
+    ".ds2", ".dss", ".webm",
+  ];
   const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
 
   if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(ext)) {
     return NextResponse.json(
-      { error: "Invalid file type. Accepted: MP3, WAV, M4A, OGG, FLAC" },
+      { error: "Invalid file type. Accepted: MP3, WAV, M4A, OGG, FLAC, DS2, DSS, WMA, WebM" },
       { status: 400 }
     );
   }

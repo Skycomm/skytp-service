@@ -4,6 +4,7 @@ import { formatTranscript } from "./llm";
 import { markdownToRtf } from "./rtf";
 import { sendLetterEmail } from "./email";
 import { put } from "@vercel/blob";
+import { convertToWav } from "./audio-convert";
 
 export async function processJob(jobId: string): Promise<void> {
   const job = await prisma.job.findUniqueOrThrow({
@@ -12,6 +13,16 @@ export async function processJob(jobId: string): Promise<void> {
   });
 
   try {
+    // Step 0: Convert DS2/DSS to WAV if needed
+    let audioUrl = job.audioUrl!;
+    const ext = job.audioFilename.toLowerCase().replace(/.*\./, ".");
+    if (ext === ".ds2" || ext === ".dss") {
+      const wavUrl = await convertToWav(audioUrl, jobId);
+      if (wavUrl) {
+        audioUrl = wavUrl;
+      }
+    }
+
     // Step 1: Transcribe
     await prisma.job.update({
       where: { id: jobId },
@@ -19,7 +30,7 @@ export async function processJob(jobId: string): Promise<void> {
     });
 
     const { text: transcript, durationMs: sttTimeMs } = await transcribeAudio(
-      job.audioUrl!
+      audioUrl
     );
 
     await prisma.job.update({

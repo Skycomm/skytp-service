@@ -33,7 +33,7 @@ function getGraphClient(): Client | null {
   });
 }
 
-const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".ogg", ".flac", ".wma"];
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".ogg", ".flac", ".wma", ".ds2", ".dss", ".webm"];
 
 export async function pollEmailInbox(): Promise<{
   processed: number;
