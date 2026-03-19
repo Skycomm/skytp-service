@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Doctor {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  email          String   @unique
+  practiceName   String?  @map("practice_name")
+  preferredModel String   @default("gpt-4.1") @map("preferred_model")
+  letterheadUrl  String?  @map("letterhead_url")
+  isAdmin        Boolean  @default(false) @map("is_admin")
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  jobs           Job[]
+
+  @@map("doctors")
+}
+
+model Job {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  doctorId      String    @map("doctor_id") @db.Uuid
+  doctor        Doctor    @relation(fields: [doctorId], references: [id])
+  audioFilename String    @map("audio_filename")
+  audioUrl      String?   @map("audio_url")
+  status        String    @default("pending") // pending|transcribing|formatting|done|failed
+  transcript    String?
+  letterRtf     String?   @map("letter_rtf")
+  letterUrl     String?   @map("letter_url")
+  modelUsed     String?   @map("model_used")
+  sttTimeMs     Int?      @map("stt_time_ms")
+  llmTimeMs     Int?      @map("llm_time_ms")
+  error         String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz()
+
+  @@map("jobs")
+}
